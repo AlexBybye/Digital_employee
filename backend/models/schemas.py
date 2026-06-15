@@ -36,6 +36,7 @@ class RagStatusResponse(BaseModel):
     direct_answer_threshold: float
     llm_provider: str
     vector_store: str
+    scorer: str = "lexical"
 
 
 class TicketCreate(BaseModel):

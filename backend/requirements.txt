@@ -3,3 +3,9 @@ uvicorn[standard]==0.30.1
 sentence-transformers==3.4.1
 numpy
 
+# Models (downloaded to data/models/ on first run, or bundle offline):
+#   - bge-small-zh-v1.5  : bi-encoder for vector recall (SentenceTransformer)
+#   - bge-reranker-base  : cross-encoder for reranking   (CrossEncoder)
+# Both ship inside sentence-transformers; no extra package needed.
+# If the reranker model is absent the pipeline degrades to RRF fusion scoring.
+

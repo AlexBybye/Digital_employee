@@ -1,15 +1,13 @@
 """Lightweight vector store using numpy + BGE embeddings (no chromadb)."""
 import logging
-import os
 import pickle
-from pathlib import Path
 
 import numpy as np
 
+from rag.config import DATA_DIR, EMBED_MODEL_DIR as MODEL_DIR, EMBED_MODEL_NAME
+
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-MODEL_DIR = DATA_DIR / "models" / "bge-small-zh-v1.5"
 VECTOR_CACHE = DATA_DIR / "vectors.pkl"
 
 _encoder = None
@@ -26,7 +24,7 @@ def _get_encoder():
             _encoder = SentenceTransformer(str(MODEL_DIR), device="cpu")
         else:
             logger.warning("Local model not found at %s, trying online download...", MODEL_DIR)
-            _encoder = SentenceTransformer("BAAI/bge-small-zh-v1.5", device="cpu")
+            _encoder = SentenceTransformer(EMBED_MODEL_NAME, device="cpu")
     return _encoder
 
 
@@ -43,7 +41,10 @@ def init_vector_store(faqs=None) -> bool:
     try:
         _vector_cache = {}
         if faqs:
-            texts = [f"{f['question']} {f['answer']}" for f in faqs]
+            # Embed the QUESTION only. Bundling the answer into the indexed text
+            # dilutes the match signal — the user query resembles the question,
+            # not the long answer body. The answer is kept for context/rerank.
+            texts = [f["question"] for f in faqs]
             vectors = _embed_batch(texts)
             for i, faq in enumerate(faqs):
                 _vector_cache[faq["id"]] = {

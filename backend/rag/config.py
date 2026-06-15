@@ -24,15 +24,22 @@ RRF_K = 60          # Reciprocal Rank Fusion damping constant (standard default)
 RERANK_TOP_K = 5    # how many fused candidates get sent to the cross-encoder
 RESULT_LIMIT = 3    # final results returned to the caller
 
-# --- Routing thresholds (applied to the rerank score when available) ---
-# The cross-encoder outputs a calibrated relevance score passed through a sigmoid,
-# so these absolute values are stable across different knowledge bases.
+# NOTE on the scoring contract:
+#   RRF is used ONLY to ORDER the recall set (combine the vector + BoW rankings
+#   so the best candidates reach the reranker). RRF scores are rank-based — the
+#   top item is always ~1/(RRF_K+1) regardless of match strength — so they are
+#   NEVER used as a routing confidence. Routing always keys off a magnitude-aware
+#   score: the calibrated reranker score when available, else the lexical (BoW)
+#   cosine, which is 0 for no overlap and discriminates strong vs weak matches.
+
+# --- Routing thresholds: reranker online (calibrated cross-encoder score) ---
 RERANK_DIRECT = 0.60   # >= -> return FAQ answer directly (no LLM)
 RERANK_LLM = 0.20      # [LLM, DIRECT) -> LLM answers with retrieved context
                        # < RERANK_LLM -> create a ticket (human handoff)
 
-# --- Fallback thresholds (applied to the RRF score when reranker is unavailable) ---
-# RRF scores are small (sum of 1/(k+rank)); these are calibrated for RRF_K=60
-# with two channels, so a doc ranked #1 in both channels scores ~2/61 ≈ 0.0328.
-RRF_DIRECT = 0.028
-RRF_LLM = 0.012
+# --- Routing thresholds: reranker offline (lexical BoW cosine, 0..1) ---
+# Calibrated against the FAQ set: a near-verbatim question scores ~0.6-0.7,
+# a loosely related one ~0.1-0.3, an off-topic query ~0.0-0.05.
+LEX_DIRECT = 0.45      # strong lexical overlap -> direct FAQ answer
+LEX_LLM = 0.12         # some overlap -> LLM with context; below -> ticket
+
