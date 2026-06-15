@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>申告工单处理 - 运维数字员工</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body data-page="tickets">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1>运维数字员工</h1>
+          <p>后台处理</p>
+        </div>
+        <nav class="nav">
+          <a href="./index.html">系统总览</a>
+          <a href="./self-service.html">前台自助服务</a>
+          <a class="active" href="./tickets.html">申告工单处理</a>
+          <a href="./users.html">运维账号管理</a>
+          <a href="./knowledge.html">私有知识库</a>
+          <a href="./rpa.html">RPA 自动化</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h2>申告工单处理</h2>
+            <p>查询 AI 无法处理的问题，填写处理结果和回访记录。</p>
+          </div>
+          <div class="status" id="systemStatus">正在连接后端...</div>
+          <div id="userInfo" style="display:none;font-size:13px;color:var(--muted);white-space:nowrap;">
+            <span id="displayUser"></span>
+            <button class="ghost" id="logoutBtn" style="margin-left:8px;padding:2px 10px;font-size:12px;">退出</button>
+          </div>
+        </div>
+
+        <section class="panel">
+          <h3>工单查询</h3>
+          <div class="grid">
+            <div>
+              <label for="ticketKeyword">关键词</label>
+              <input id="ticketKeyword" placeholder="账号、报障人、类别" />
+            </div>
+            <div>
+              <label for="ticketStatus">状态</label>
+              <select id="ticketStatus">
+                <option value="">全部</option>
+                <option value="open">open</option>
+                <option value="in_progress">in_progress</option>
+                <option value="resolved">resolved</option>
+                <option value="closed">closed</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="loadTickets">查询工单</button>
+            <button class="secondary" id="newTicketDemo">新增演示工单</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>工单列表</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>问题</th>
+                  <th>报障人</th>
+                  <th>类别/优先级</th>
+                  <th>状态</th>
+                  <th>回访</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="ticketsTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>处理工单</h3>
+          <div class="grid">
+            <div>
+              <label for="resolveId">工单 ID</label>
+              <input id="resolveId" />
+            </div>
+            <div>
+              <label for="resolver">处理人</label>
+              <input id="resolver" value="admin" />
+            </div>
+          </div>
+          <label for="resolveNote">处理结果（内部记录）</label>
+          <textarea id="resolveNote" placeholder="此内容仅保存在工单中，不会写入知识库">已核验身份，按账号解冻流程处理并完成回访。</textarea>
+          <div class="actions" style="align-items:center;">
+            <label for="kbAnswer" style="margin:0;">知识库答案（请点击此按钮沉淀到知识库）</label>
+            <button id="toggleKb" class="toggle-kb">沉淀到知识库</button>
+          </div>
+          <textarea id="kbAnswer" placeholder="输入要沉淀到 FAQ 的答案内容">通过自助门户访问 http://XXX.YYY.ZZZ 提交解冻申请，或拨打运维热线 XXXXX；管理员核验身份后可在账号管理中解冻。</textarea>
+          <label for="callbackNote">回访记录</label>
+          <input id="callbackNote" value="已电话回访，报障人确认问题解决。" />
+          <div class="actions">
+            <button id="resolveTicket">解决工单</button>
+            <button class="ghost" id="markInProgress">标记处理中</button>
+          </div>
+          <pre id="ticketResult">请选择或输入工单 ID。</pre>
+        </section>
+
+        <section class="panel danger-zone">
+          <h3>危险操作</h3>
+          <p>关闭工单后将无法再次修改，此操作不可撤销。</p>
+          <button class="danger" id="closeTicketBtn">关闭工单</button>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-overlay" id="closeModal">
+      <div class="modal-box">
+        <h3>确认关闭工单</h3>
+        <p>确定要关闭工单 <span id="closeTicketId">#?</span> 吗？关闭后不可撤销。</p>
+        <div class="modal-actions">
+          <button class="secondary" id="modalCancel">返回</button>
+          <button class="danger" id="modalConfirm">确定关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

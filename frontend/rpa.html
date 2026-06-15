@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPA 自动化 - 运维数字员工</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body data-page="rpa">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1>运维数字员工</h1>
+          <p>流程自动化 · 所有操作自动记录审计日志</p>
+        </div>
+        <nav class="nav">
+          <a href="./index.html">系统总览</a>
+          <a href="./self-service.html">前台自助服务</a>
+          <a href="./tickets.html">申告工单处理</a>
+          <a href="./users.html">运维账号管理</a>
+          <a href="./knowledge.html">私有知识库</a>
+          <a class="active" href="./rpa.html">RPA 自动化</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h2>AI 智能自动化</h2>
+            <p>输入自然语言指令，AI 将自动识别意图并执行对应的 RPA 操作。所有执行记录自动保存可追溯。</p>
+          </div>
+          <div class="status" id="systemStatus">正在连接后端...</div>
+          <div id="userInfo" style="display:none;font-size:13px;color:var(--muted);white-space:nowrap;">
+            <span id="displayUser"></span>
+            <button class="ghost" id="logoutBtn" style="margin-left:8px;padding:2px 10px;font-size:12px;">退出</button>
+          </div>
+        </div>
+
+        <section class="panel" style="border-color:#a78bfa; background:#f5f3ff;">
+          <h3 style="color:#7c3aed;">AI 智能自动化</h3>
+          <p style="color:#6b7280; font-size:13px; margin:0 0 12px;">
+            输入自然语言指令，AI 将自动识别意图并执行对应的 RPA 操作。
+          </p>
+          <label for="aiRpaCommand">指令</label>
+          <input id="aiRpaCommand" value="帮我重置ops01的密码为Temp1234" />
+          <div class="actions">
+            <button id="aiRpaExecute" style="background:#7c3aed;">AI 自动执行</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>RPA 执行结果</h3>
+          <pre id="rpaResult">等待执行自动化流程...</pre>
+        </section>
+
+        <section class="panel">
+          <h3>执行历史</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>操作</th>
+                  <th>状态</th>
+                  <th>结果</th>
+                </tr>
+              </thead>
+              <tbody id="rpaHistoryTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

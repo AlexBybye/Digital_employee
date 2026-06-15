@@ -1,0 +1,25 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+data/*.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vector cache (auto-generated)
+data/chroma/
+data/vectors.pkl
+
+# Environment
+.env
+venv/
+.venv/

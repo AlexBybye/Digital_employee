@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>运维数字员工系统</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body data-page="dashboard">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1>运维数字员工</h1>
+          <p>AI + RAG + RPA</p>
+        </div>
+        <nav class="nav">
+          <a class="active" href="./index.html">系统总览</a>
+          <a href="./self-service.html">前台自助服务</a>
+          <a href="./tickets.html">申告工单处理</a>
+          <a href="./users.html">运维账号管理</a>
+          <a href="./knowledge.html">私有知识库</a>
+          <a href="./rpa.html">RPA 自动化</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h2>系统总览</h2>
+            <p>用于课程设计演示的运维数字员工门户。</p>
+          </div>
+          <div class="status" id="systemStatus">正在连接后端...</div>
+          <div id="userInfo" style="display:none;font-size:13px;color:var(--muted);white-space:nowrap;">
+            <span id="displayUser"></span>
+            <button class="ghost" id="logoutBtn" style="margin-left:8px;padding:2px 10px;font-size:12px;">退出</button>
+          </div>
+        </div>
+
+        <section class="grid three">
+          <div class="card">
+            <h3>前台自助服务</h3>
+            <p>用户提交常见运维问题，系统调用本地知识库自动回答。</p>
+            <a class="button" href="./self-service.html">进入自助服务</a>
+          </div>
+          <div class="card">
+            <h3>申告工单处理</h3>
+            <p>AI 无法回答时自动记录工单，后台人员处理并回访。</p>
+            <a class="button" href="./tickets.html">进入工单处理</a>
+          </div>
+          <div class="card">
+            <h3>运维账号管理</h3>
+            <p>完成账号新增、查询、修改、删除、冻结和解冻。</p>
+            <a class="button" href="./users.html">进入账号管理</a>
+          </div>
+          <div class="card">
+            <h3>私有知识库</h3>
+            <p>维护 FAQ 问答对，支持工单处理结果自动沉淀。</p>
+            <a class="button" href="./knowledge.html">进入知识库</a>
+          </div>
+          <div class="card">
+            <h3>RPA 自动化</h3>
+            <p>模拟重置密码、创建账号和账号冻结清理流程。</p>
+            <a class="button" href="./rpa.html">进入 RPA</a>
+          </div>
+          <div class="card">
+            <h3>接口文档</h3>
+            <p>查看 FastAPI 自动生成的接口文档和调试页面。</p>
+            <a class="button" href="http://127.0.0.1:8001/docs" target="_blank">打开 API 文档</a>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>运行状态</h3>
+          <div class="grid three">
+            <div class="message light" id="dashboardHealth">后端状态：读取中</div>
+            <div class="message light" id="dashboardRag">知识库状态：读取中</div>
+            <div class="message light" id="dashboardCounts">数据统计：读取中</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-overlay" id="loginModal">
+      <div class="modal-box" style="min-width:320px;">
+        <h3 style="color:var(--text);">运维数字员工系统</h3>
+        <p style="font-size:13px;">请登录以访问后台管理</p>
+        <div style="margin-bottom:12px;">
+          <label for="loginUsername" style="display:block;margin-bottom:4px;font-size:13px;">用户名</label>
+          <input id="loginUsername" placeholder="请输入用户名" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;" />
+        </div>
+        <div style="margin-bottom:18px;">
+          <label for="loginPassword" style="display:block;margin-bottom:4px;font-size:13px;">密码</label>
+          <input id="loginPassword" type="password" placeholder="请输入密码" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;" />
+        </div>
+        <div id="loginError" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;"></div>
+        <div class="modal-actions">
+          <button id="loginBtn" style="width:100%;">登 录</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

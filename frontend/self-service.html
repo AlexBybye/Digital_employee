@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前台自助服务 - 运维数字员工</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body data-page="self-service">
+    <div class="layout layout-full">
+      <main class="main">
+        <div class="topbar">
+          <div>
+            <h2>前台自助服务</h2>
+            <p>向我提问，我会从知识库查找答案；如果无法回答，将自动创建工单转人工处理。</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="status" id="systemStatus">正在连接后端...</div>
+            <div id="selfLoginArea" style="display:flex;align-items:center;gap:8px;">
+              <span id="selfLoginUser" style="font-size:13px;color:var(--muted);display:none;"></span>
+              <button id="selfLoginBtn" class="ghost" style="font-size:12px;padding:4px 12px;">登录</button>
+              <button id="selfLogoutBtn" class="ghost" style="font-size:12px;padding:4px 12px;display:none;">退出</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-layout">
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg bot">
+              <div class="msg-avatar">🤖</div>
+              <div class="msg-content">
+                <div class="msg-text">你好，我是运维数字员工！你可以问我运维相关问题，我会优先从知识库中查找答案。如果无法回答，将自动创建工单转人工处理。</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-bar">
+            <input id="chatInput" placeholder="输入你的问题或指令..." autofocus />
+            <button id="chatSend">发送</button>
+          </div>
+        </div>
+
+        <div style="display:none;">
+          <input id="askUser" value="ops01" />
+          <input id="askContact" value="13300000002" />
+          <select id="askCategory"><option value="account">账号</option><option value="network">网络</option><option value="server">服务器</option><option value="general">通用</option></select>
+          <select id="askPriority"><option value="normal">普通</option><option value="high">高</option><option value="urgent">紧急</option><option value="low">低</option></select>
+          <textarea id="question"></textarea>
+        </div>
+
+        <section class="panel" id="myTicketsSection" style="display:none;margin-top:24px;">
+          <h3>我的工单 <button class="ghost" id="refreshMyTickets" style="font-size:12px;margin-left:8px;">刷新</button></h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>ID</th><th>问题</th><th>状态</th><th>处理结果</th><th>时间</th></tr>
+              </thead>
+              <tbody id="myTicketsTable"><tr><td colspan="5" class="empty">登录后可查看您的工单</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+
+    <!-- Login modal for self-service -->
+    <div class="modal-overlay" id="selfLoginModal">
+      <div class="modal-box">
+        <h3>登录</h3>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;margin-bottom:4px;font-size:13px;">用户名</label>
+          <input id="selfLoginUsername" placeholder="请输入用户名" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;" />
+        </div>
+        <div style="margin-bottom:18px;">
+          <label style="display:block;margin-bottom:4px;font-size:13px;">密码</label>
+          <input id="selfLoginPassword" type="password" placeholder="请输入密码" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;" />
+        </div>
+        <div id="selfLoginError" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;"></div>
+        <button id="selfLoginSubmit" style="width:100%;">登 录</button>
+      </div>
+    </div>
+  </body>
+</html>
