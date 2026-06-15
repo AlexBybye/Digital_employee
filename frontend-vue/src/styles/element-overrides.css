@@ -1,0 +1,77 @@
+/* ===== Element Plus glass overrides ===== */
+
+:root {
+  --el-color-primary: #0a84ff;
+  --el-border-radius-base: 10px;
+  --el-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+}
+
+/* Cards become frosted glass */
+.el-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  border-radius: var(--radius) !important;
+}
+.el-card__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  font-weight: 600;
+}
+
+/* Buttons: pill + subtle depth */
+.el-button {
+  border-radius: 10px;
+  font-weight: 500;
+}
+.el-button--primary {
+  --el-button-bg-color: var(--primary);
+  --el-button-border-color: var(--primary);
+  --el-button-hover-bg-color: var(--primary-dark);
+  --el-button-hover-border-color: var(--primary-dark);
+}
+
+/* Inputs: translucent */
+.el-input__wrapper,
+.el-textarea__inner {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset !important;
+}
+
+/* Tables: transparent so glass shows through */
+.el-table {
+  background: transparent !important;
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: rgba(255, 255, 255, 0.45);
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.55);
+  --el-table-border-color: rgba(0, 0, 0, 0.06);
+}
+.el-table th.el-table__cell {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Dialogs: frosted */
+.el-dialog {
+  background: var(--glass-bg-strong) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius) !important;
+  box-shadow: 0 20px 60px rgba(31, 38, 135, 0.25) !important;
+}
+.el-overlay {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(2px);
+}
+
+/* Tags / pills */
+.el-tag {
+  border-radius: 999px;
+  border: none;
+  font-weight: 500;
+}

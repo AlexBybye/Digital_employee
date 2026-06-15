@@ -33,9 +33,14 @@ RESULT_LIMIT = 3    # final results returned to the caller
 #   cosine, which is 0 for no overlap and discriminates strong vs weak matches.
 
 # --- Routing thresholds: reranker online (calibrated cross-encoder score) ---
-RERANK_DIRECT = 0.60   # >= -> return FAQ answer directly (no LLM)
-RERANK_LLM = 0.20      # [LLM, DIRECT) -> LLM answers with retrieved context
-                       # < RERANK_LLM -> create a ticket (human handoff)
+# bge-reranker emits a logit squashed to (0,1): a relevant query-doc pair scores
+# ~0.65-0.75, while an UNRELATED pair sits at ~0.50 (sigmoid of a near-zero logit).
+# So the LLM cutoff must sit ABOVE 0.50, or off-topic questions ("今天星期几")
+# leak into the LLM path instead of becoming a ticket. Measured on the FAQ set:
+# clear hits 0.67-0.73, off-topic 0.50.
+RERANK_DIRECT = 0.62   # >= -> return FAQ answer directly (no LLM)
+RERANK_LLM = 0.55      # [LLM, DIRECT) -> LLM answers with retrieved context
+                       # < RERANK_LLM (incl. the ~0.50 off-topic band) -> create a ticket
 
 # --- Routing thresholds: reranker offline (lexical BoW cosine, 0..1) ---
 # Calibrated against the FAQ set: a near-verbatim question scores ~0.6-0.7,

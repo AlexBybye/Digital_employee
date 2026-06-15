@@ -18,15 +18,26 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from rag import retriever  # noqa: E402
+from rag import reranker as reranker_mod  # noqa: E402
 from services import ai_service  # noqa: E402
-from database.db import init_database, seed_database  # noqa: E402
+from database.db import init_database, seed_database, get_faqs  # noqa: E402
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _init_db():
-    """Create SQLite tables + seed data so ticket-creation paths work in tests."""
+    """Create SQLite tables + seed data so ticket-creation paths work in tests.
+
+    Also initialize the vector store when the embedding model is present, so the
+    reranker tests exercise the real vector-recall path. Both are best-effort:
+    if the models aren't installed the pipeline degrades and those tests skip.
+    """
     init_database()
     seed_database()
+    try:
+        from rag.chroma_store import init_vector_store
+        init_vector_store(get_faqs())
+    except Exception:
+        pass  # no embedding model -> lexical fallback, degraded tests still run
 
 
 def test_tokens_chinese_bigrams():
@@ -94,3 +105,30 @@ def test_human_handoff_creates_ticket():
     res = ai_service.ask_knowledge_base("我要转人工", user="tester")
     assert res["fallback"] is True
     assert res["ticket_id"] is not None
+
+
+# --- Non-degraded path: only runs when the cross-encoder model is available ---
+
+_RERANKER = reranker_mod.is_ready()
+
+
+@pytest.mark.skipif(not _RERANKER, reason="bge-reranker model not available")
+def test_rerank_semantic_match_beats_lexical():
+    """With the reranker, a paraphrase routes to the semantically correct FAQ.
+
+    'How do I open an account for a new colleague' must hit the *create-account*
+    FAQ (#3), not the lexically-similar *freeze-account* FAQ (#1) that the
+    keyword-only fallback mis-picks.
+    """
+    results = retriever.retrieve("怎么给新同事开账号", limit=1)
+    assert results and results[0]["score_source"] == "rerank"
+    assert "创建" in results[0]["question"] or results[0]["id"] == 3
+
+
+@pytest.mark.skipif(not _RERANKER, reason="bge-reranker model not available")
+def test_rerank_off_topic_creates_ticket():
+    """Off-topic queries sit at the reranker's neutral ~0.5 band -> ticket, not LLM."""
+    res = ai_service.ask_knowledge_base("今天星期几", user="tester")
+    assert res["fallback"] is True
+    assert res["ticket_id"] is not None
+

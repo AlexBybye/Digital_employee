@@ -1,0 +1,102 @@
+/* ===== Apple-style glassmorphism theme ===== */
+:root {
+  /* Brand */
+  --primary: #0a84ff;
+  --primary-dark: #0060df;
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --danger: #ff453a;
+
+  /* Text */
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --text-invert: #f5f5f7;
+
+  /* Glass surfaces */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+  --glass-blur: 20px;
+
+  /* Layout */
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro SC', 'PingFang SC',
+    'Microsoft YaHei', 'Segoe UI', sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Soft ambient gradient backdrop the glass sits on */
+body {
+  background: linear-gradient(135deg, #eaf1ff 0%, #f6f0ff 35%, #fef0f4 70%, #eafaf4 100%);
+  background-attachment: fixed;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* Decorative blurred color blobs behind the glass */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  z-index: -1;
+  pointer-events: none;
+}
+body::before {
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, #7eb0ff 0%, transparent 70%);
+  top: -120px;
+  left: -80px;
+}
+body::after {
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, #ffb0d6 0%, transparent 70%);
+  bottom: -160px;
+  right: -100px;
+}
+
+/* ===== Glass primitives ===== */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+}
+
+.page-title {
+  margin: 0 0 4px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.page-sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}

@@ -19,6 +19,10 @@ Thumbs.db
 data/chroma/
 data/vectors.pkl
 
+# Reranker model (~1.1GB, fetched on first run — too large for git.
+# The bge-small embedding model IS committed; the reranker is not.)
+data/models/bge-reranker-base/
+
 # Environment
 .env
 venv/
