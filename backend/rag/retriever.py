@@ -21,7 +21,8 @@ from collections import Counter
 
 from database.db import get_faqs
 from rag.chroma_store import is_ready as vector_ready, search as vector_search
-from rag.config import RECALL_TOP_N, RRF_K, RERANK_TOP_K, RESULT_LIMIT
+from rag.config import RECALL_TOP_N, RRF_K, RERANK_TOP_K, RESULT_LIMIT, FAQ_PRIORITY_BIAS
+from rag.doc_store import is_ready as doc_ready, doc_search, all_docs
 from rag.reranker import is_ready as reranker_ready, rerank
 
 TOKEN_PATTERN = re.compile(r"[一-鿿]+|[a-zA-Z0-9_]+")
@@ -82,21 +83,25 @@ def cosine_similarity(left, right):
     return num/(ln*rn) if ln and rn else 0.0
 
 
-def _vector_ranking(question, faqs):
-    """Return faq_ids ordered best-first by vector similarity (empty if offline)."""
-    if not vector_ready():
-        return []
-    raw = vector_search(question, limit=min(RECALL_TOP_N, len(faqs)))
-    return [r["id"] for r in raw]
+def _vector_ranking(question, n_items):
+    """Return item ids ordered best-first by vector similarity across FAQ + doc stores."""
+    ranked = []
+    if vector_ready():
+        ranked += vector_search(question, limit=min(RECALL_TOP_N, n_items))
+    if doc_ready():
+        ranked += doc_search(question, limit=RECALL_TOP_N)
+    # Merge the two channels' scores into one ranking (higher cosine first).
+    ranked.sort(key=lambda r: -r.get("score", 0.0))
+    return [r["id"] for r in ranked]
 
 
-def _bow_ranking(question, faqs):
-    """Return (ordered faq_ids, {id: bow_score}) by keyword cosine similarity."""
+def _bow_ranking(question, items):
+    """Return (ordered ids, {id: bow_score}) by keyword cosine over question/section text."""
     qv = vectorize(question)
-    scored = [(f["id"], cosine_similarity(qv, vectorize(f["question"]))) for f in faqs]
+    scored = [(it["id"], cosine_similarity(qv, vectorize(it["question"]))) for it in items]
     scored.sort(key=lambda x: -x[1])
-    ordered = [fid for fid, score in scored[:RECALL_TOP_N] if score > 0]
-    return ordered, {fid: score for fid, score in scored}
+    ordered = [iid for iid, score in scored[:RECALL_TOP_N] if score > 0]
+    return ordered, {iid: score for iid, score in scored}
 
 
 def _rrf_fuse(*rankings):
@@ -109,35 +114,37 @@ def _rrf_fuse(*rankings):
 
 
 def retrieve(question, limit=RESULT_LIMIT):
-    """Run the full recall → fuse → rerank pipeline and return ranked FAQs."""
+    """Run the full recall → fuse → rerank pipeline over FAQs + doc chunks."""
     faqs = get_faqs()
-    if not faqs:
+    docs = all_docs()  # [] when no docs ingested (V1) — pipeline degrades to FAQ-only
+    items = faqs + docs
+    if not items:
         return []
 
     question = clean_query(question)
-    faq_by_id = {f["id"]: f for f in faqs}
+    item_by_id = {it["id"]: it for it in items}
 
     # --- Stage 1: dual-channel recall + RRF fusion ---
-    vec_rank = _vector_ranking(question, faqs)
-    bow_rank, bow_scores = _bow_ranking(question, faqs)
-    vec_pos = {fid: i for i, fid in enumerate(vec_rank)}
-    bow_pos = {fid: i for i, fid in enumerate(bow_rank)}
+    vec_rank = _vector_ranking(question, len(items))
+    bow_rank, bow_scores = _bow_ranking(question, items)
+    vec_pos = {iid: i for i, iid in enumerate(vec_rank)}
+    bow_pos = {iid: i for i, iid in enumerate(bow_rank)}
 
     fused = _rrf_fuse(vec_rank, bow_rank)
     if not fused:
         return []
 
-    fused_ids = sorted(fused, key=lambda fid: -fused[fid])
+    fused_ids = sorted(fused, key=lambda iid: -fused[iid])
 
     candidates = []
-    for fid in fused_ids[:RERANK_TOP_K]:
-        faq = faq_by_id[fid]
+    for iid in fused_ids[:RERANK_TOP_K]:
+        it = item_by_id[iid]
         candidates.append({
-            **faq,
-            "rrf_score": round(fused[fid], 4),
-            "bow_score": round(bow_scores.get(fid, 0.0), 4),
-            "vec_rank": vec_pos.get(fid, -1),
-            "bow_rank": bow_pos.get(fid, -1),
+            **it,
+            "rrf_score": round(fused[iid], 4),
+            "bow_score": round(bow_scores.get(iid, 0.0), 4),
+            "vec_rank": vec_pos.get(iid, -1),
+            "bow_rank": bow_pos.get(iid, -1),
         })
 
     # --- Stage 2: cross-encoder rerank (with graceful fallback) ---
@@ -149,9 +156,12 @@ def retrieve(question, limit=RESULT_LIMIT):
         for c in candidates:
             c["score"] = c.get("rerank_score", 0.0)
             c["score_source"] = "rerank"
+        # Ordering-only FAQ-priority bias: lets a FAQ win a near-tie against a
+        # doc chunk on the same topic. Does NOT mutate `score` (routing reads that).
+        candidates.sort(key=lambda c: -(c["score"] + (FAQ_PRIORITY_BIAS if "source" not in c else 0.0)))
     else:
         # Re-sort by lexical score so the routing-relevant signal also drives order.
-        candidates.sort(key=lambda c: -c["bow_score"])
+        candidates.sort(key=lambda c: -(c["bow_score"] + (FAQ_PRIORITY_BIAS if "source" not in c else 0.0)))
         for c in candidates:
             c["score"] = c["bow_score"]
             c["score_source"] = "lexical"

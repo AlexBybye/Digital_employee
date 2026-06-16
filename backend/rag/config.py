@@ -24,6 +24,13 @@ RRF_K = 60          # Reciprocal Rank Fusion damping constant (standard default)
 RERANK_TOP_K = 5    # how many fused candidates get sent to the cross-encoder
 RESULT_LIMIT = 3    # final results returned to the caller
 
+# When a FAQ and a long-doc chunk cover the SAME topic, their rerank scores land
+# within a hair of each other. FAQs are the curated, authoritative short answers;
+# doc chunks are supporting detail. So apply a small ORDERING-ONLY bias that lets
+# a FAQ win a near-tie. It does NOT change the score used for routing thresholds,
+# and it is small enough that a clearly-more-relevant doc still outranks a FAQ.
+FAQ_PRIORITY_BIAS = 0.05
+
 # NOTE on the scoring contract:
 #   RRF is used ONLY to ORDER the recall set (combine the vector + BoW rankings
 #   so the best candidates reach the reranker). RRF scores are rank-based — the

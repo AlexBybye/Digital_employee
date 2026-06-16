@@ -44,6 +44,13 @@ async function send() {
   const text = input.value.trim()
   if (!text || sending.value) return
 
+  // Build conversation history (recent turns) for multi-turn query rewrite.
+  // Only real exchanged messages, excluding the greeting and any typing stub.
+  const history = messages.value
+    .filter((m) => m.text && m.text !== '正在思考...')
+    .slice(-6)
+    .map((m) => ({ role: (m.isUser ? 'user' : 'assistant') as 'user' | 'assistant', text: m.text }))
+
   messages.value.push({ id: seq++, text, isUser: true })
   input.value = ''
   sending.value = true
@@ -52,7 +59,7 @@ async function send() {
   await scrollToBottom()
 
   try {
-    const res = await chat(text)
+    const res = await chat(text, history)
     const idx = messages.value.findIndex((m) => m.id === typingId)
     if (idx !== -1) messages.value.splice(idx, 1)
 

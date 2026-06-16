@@ -26,12 +26,17 @@ def _call_ollama(prompt: str) -> str | None:
     Returns ``None`` if the request fails (Ollama not running, model
     not pulled, network error, etc.).
     """
+    return call_ollama(prompt)
+
+
+def call_ollama(prompt: str, max_tokens: int = 1024) -> str | None:
+    """Public Ollama call, reusable by other modules (e.g. query rewrite)."""
     payload = json.dumps(
         {
             "model": OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False,
-            "options": {"temperature": 0.15, "top_p": 0.7, "max_tokens": 1024},
+            "options": {"temperature": 0.15, "top_p": 0.7, "max_tokens": max_tokens},
         }
     ).encode()
 

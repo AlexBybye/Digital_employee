@@ -37,14 +37,21 @@ def _thresholds(score_source: str) -> tuple[float, float]:
     return LEX_DIRECT, LEX_LLM
 
 
-def ask_knowledge_base(question, user="", contact="", category="general", priority="normal"):
+def ask_knowledge_base(question, user="", contact="", category="general", priority="normal",
+                       retrieval_query=None):
+    """Answer a question, optionally retrieving with a rewritten query.
+
+    ``retrieval_query`` (when given) is used for RETRIEVAL only — e.g. a
+    multi-turn follow-up rewritten into a self-contained query. The original
+    ``question`` is still what gets stored on any ticket and shown to the user.
+    """
     # Direct-to-human: user explicitly asks for human support
     if _is_human_agent_request(question):
         ticket = create_ticket(question, user, contact, category, priority="urgent")
         return {"answer": "已为您转接人工处理，工单已创建，管理员将尽快处理您的问题。",
                 "confidence": 1.0, "fallback": True, "ticket_id": ticket["id"], "sources": []}
 
-    sources = retrieve(question, limit=2)
+    sources = retrieve(retrieval_query or question, limit=2)
     if not sources:
         ticket = create_ticket(question, user, contact, category, priority)
         return {"answer": "知识库暂时没有足够信息回答该问题，系统已自动创建工单等待管理员处理。",

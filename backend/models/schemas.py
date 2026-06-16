@@ -204,8 +204,14 @@ class RpaJobHistoryItem(BaseModel):
     created_at: str
 
 
+class ChatTurn(BaseModel):
+    role: str = Field(default="user", description="user 或 assistant")
+    text: str = Field(default="", description="该轮消息内容")
+
+
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, description="用户输入")
+    history: list[ChatTurn] = Field(default_factory=list, description="此前对话轮次，用于多轮改写")
 
 
 class ChatResponse(BaseModel):

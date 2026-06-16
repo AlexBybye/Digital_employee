@@ -2,24 +2,34 @@
 
 Delegates to ``ai_service.ask_knowledge_base()`` which handles
 BGE vector + BoW scoring, three-tier routing, and ticket creation.
+For multi-turn conversations it first rewrites the latest message into a
+self-contained retrieval query using the conversation history.
 """
 
 import logging
 
+from rag.query_rewrite import rewrite_query
 from services.ai_service import ask_knowledge_base
 
 logger = logging.getLogger(__name__)
 
 
-def chat(message: str, user: str = "anonymous") -> dict:
+def chat(message: str, user: str = "anonymous", history: list[dict] | None = None) -> dict:
     """Unified chat entry point. Delegates to the knowledge-base service.
 
-    The service automatically:
-    - Returns a direct FAQ answer when confident (score >= 0.55)
-    - Generates an LLM answer with context (score 0.40-0.55)
-    - Creates a ticket when confidence is low (score < 0.40)
+    ``history`` is the prior conversation turns ([{role, text}, ...]). When
+    present, the latest ``message`` is rewritten into a self-contained query
+    (LLM if Ollama is up, else rule-based) so follow-ups with pronouns/ellipsis
+    retrieve correctly. The original message is still shown and stored.
     """
-    result = ask_knowledge_base(message, user=user)
+    retrieval_query = None
+    if history:
+        rewritten = rewrite_query(history, message)
+        if rewritten and rewritten != message:
+            retrieval_query = rewritten
+            logger.info("multi-turn rewrite: %r -> %r", message, rewritten)
+
+    result = ask_knowledge_base(message, user=user, retrieval_query=retrieval_query)
 
     if result.get("fallback"):
         return {

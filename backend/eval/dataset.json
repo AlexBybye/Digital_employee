@@ -1,0 +1,127 @@
+{
+  "_comment": "RAG eval dataset. FAQ suites target ids 1-6 (real FAQs; 7-8 are leftover debris in the live index). The single_turn_doc suite targets answers that live ONLY inside data/docs/*.md long-form handbooks — these are unanswerable by FAQ-only retrieval and measure the chunk-ingestion gain. multi_turn targets query rewrite. routing targets three-tier decisions.",
+
+  "single_turn": [
+    { "query": "账号被冻结了怎么办", "expected_id": 1, "note": "近义改写" },
+    { "query": "我的登录账号被锁定了，如何解锁", "expected_id": 1, "note": "锁定=冻结，解锁=解冻" },
+    { "query": "怎么把密码重置一下", "expected_id": 2, "note": "口语化" },
+    { "query": "运维账号的密码忘了想重新设置", "expected_id": 2, "note": "忘密码场景" },
+    { "query": "给新同事开一个运维账号", "expected_id": 3, "note": "开账号=创建账号，语义匹配" },
+    { "query": "新增一个后台操作员要怎么做", "expected_id": 3, "note": "操作员=运维人员" },
+    { "query": "AI答不上来的问题怎么处理", "expected_id": 4, "note": "答不上来=无法回答" },
+    { "query": "机器人回答不了的时候会怎样", "expected_id": 4, "note": "机器人=AI" },
+    { "query": "磁盘快满了报警了", "expected_id": 5, "note": "磁盘空间告警" },
+    { "query": "服务器硬盘空间不足告警如何应对", "expected_id": 5, "note": "硬盘=磁盘" },
+    { "query": "连不上VPN怎么排查", "expected_id": 6, "note": "连不上=无法登录" },
+    { "query": "VPN登录不上去了", "expected_id": 6, "note": "口语化" }
+  ],
+
+  "single_turn_doc": [
+    { "query": "运维账号密码有效期是多久", "expected_source": "account_lifecycle", "expected_section": "密码策略", "note": "答案只在长文密码策略节(90天)" },
+    { "query": "连续输错密码几次会被锁定", "expected_source": "account_lifecycle", "expected_section": "密码策略", "note": "5次锁30分钟，仅长文有" },
+    { "query": "离职员工的账号还能解冻吗", "expected_source": "account_lifecycle", "expected_section": "账号解冻", "note": "离职不予解冻，仅长文有" },
+    { "query": "账号注销之后用户名还能再用吗", "expected_source": "account_lifecycle", "expected_section": "账号注销", "note": "注销释放用户名，仅长文有" },
+    { "query": "告警一共分几个等级", "expected_source": "server_alert_handling", "expected_section": "告警分级", "note": "P1-P4四级，仅长文有" },
+    { "query": "CPU负载一直很高怎么定位", "expected_source": "server_alert_handling", "expected_section": "CPU 负载告警", "note": "top/pidstat，仅长文有" },
+    { "query": "内存告警怎么判断是不是内存泄漏", "expected_source": "server_alert_handling", "expected_section": "内存告警", "note": "OOM/dmesg，仅长文有" },
+    { "query": "服务进程老是重启该怎么办", "expected_source": "server_alert_handling", "expected_section": "服务进程告警", "note": "告警抑制，仅长文有" }
+  ],
+
+  "multi_turn": [
+    {
+      "history": [{ "role": "user", "text": "账号冻结怎么处理" }],
+      "follow_up": "那解冻之后多久能用",
+      "expected_id": 1,
+      "also_accept": [{ "expected_source": "account_lifecycle", "expected_section": "账号解冻" }],
+      "note": "省略主语-账号；FAQ#1 或长文解冻节均正确"
+    },
+    {
+      "history": [{ "role": "user", "text": "VPN无法登录怎么办" }],
+      "follow_up": "如果是账号被冻结导致的呢",
+      "expected_id": 1,
+      "also_accept": [{ "expected_source": "account_lifecycle", "expected_section": "账号解冻" }],
+      "note": "follow-up 指向账号冻结/解冻"
+    },
+    {
+      "history": [{ "role": "user", "text": "如何重置运维账号密码" }],
+      "follow_up": "这个流程会记录日志吗",
+      "expected_id": 2,
+      "note": "这个流程=指代上一轮的重置密码"
+    },
+    {
+      "history": [{ "role": "user", "text": "服务器磁盘空间告警怎么处理" }],
+      "follow_up": "清理完还是高怎么办",
+      "expected_id": 5,
+      "note": "省略主语，承接磁盘清理上下文"
+    },
+    {
+      "history": [{ "role": "user", "text": "怎么创建新的运维账号" }],
+      "follow_up": "能用RPA自动做吗",
+      "expected_id": 3,
+      "also_accept": [{ "expected_source": "account_lifecycle", "expected_section": "账号创建" }],
+      "note": "省略宾语-创建账号；FAQ#3 或长文创建节均正确"
+    },
+    {
+      "history": [{ "role": "user", "text": "AI无法回答时怎么办" }],
+      "follow_up": "处理完的结果会进知识库吗",
+      "expected_id": 4,
+      "note": "承接工单处理上下文"
+    },
+    {
+      "history": [{ "role": "user", "text": "如何重置运维账号密码" }],
+      "follow_up": "它有有效期限制吗",
+      "expected_source": "account_lifecycle",
+      "expected_section": "密码策略",
+      "note": "它=密码，跨到长文密码策略"
+    },
+    {
+      "history": [{ "role": "user", "text": "账号冻结怎么处理" }],
+      "follow_up": "离职的还能恢复吗",
+      "expected_source": "account_lifecycle",
+      "expected_section": "账号解冻",
+      "also_accept": [{ "expected_id": 1 }],
+      "note": "省略主语账号，离职场景；长文解冻节或FAQ#1均正确"
+    },
+    {
+      "history": [{ "role": "user", "text": "服务器磁盘空间告警怎么处理" }],
+      "follow_up": "那CPU高的呢",
+      "expected_source": "server_alert_handling",
+      "expected_section": "CPU 负载告警",
+      "note": "话题切换到CPU，省略告警二字"
+    },
+    {
+      "history": [{ "role": "user", "text": "磁盘告警怎么处理" }],
+      "follow_up": "这些告警是怎么分级的",
+      "expected_source": "server_alert_handling",
+      "expected_section": "告警分级",
+      "note": "这些告警=承接告警话题"
+    },
+    {
+      "history": [{ "role": "user", "text": "怎么创建运维账号" }],
+      "follow_up": "创建完密码有什么要求",
+      "expected_source": "account_lifecycle",
+      "expected_section": "密码策略",
+      "note": "承接账号话题，跨到密码策略"
+    },
+    {
+      "history": [{ "role": "user", "text": "账号怎么注销" }],
+      "follow_up": "注销了用户名还能再用吗",
+      "expected_source": "account_lifecycle",
+      "expected_section": "账号注销",
+      "note": "承接注销话题"
+    }
+  ],
+
+  "routing": [
+    { "query": "账号冻结怎么处理", "expect": "answer", "note": "in-KB 应直答或LLM" },
+    { "query": "如何重置运维账号密码", "expect": "answer", "note": "in-KB" },
+    { "query": "服务器磁盘告警怎么办", "expect": "answer", "note": "in-KB" },
+    { "query": "VPN连不上", "expect": "answer", "note": "in-KB" },
+    { "query": "今天星期几", "expect": "ticket", "note": "off-topic 应转工单" },
+    { "query": "帮我推荐一家附近的火锅店", "expect": "ticket", "note": "off-topic" },
+    { "query": "讲个笑话来听听", "expect": "ticket", "note": "off-topic" },
+    { "query": "你们公司年会在哪里办", "expect": "ticket", "note": "off-topic" },
+    { "query": "我要转人工", "expect": "ticket", "note": "human handoff" },
+    { "query": "帮我转接管理员", "expect": "ticket", "note": "human handoff" }
+  ]
+}

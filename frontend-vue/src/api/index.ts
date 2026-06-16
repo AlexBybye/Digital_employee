@@ -24,8 +24,13 @@ export const login = (username: string, password: string) =>
     .then((r) => r.data)
 
 // ---- AI ----
-export const chat = (message: string) =>
-  client.post<ChatResponse>('/ai/chat', { message }).then((r) => r.data)
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  text: string
+}
+
+export const chat = (message: string, history: ChatTurn[] = []) =>
+  client.post<ChatResponse>('/ai/chat', { message, history }).then((r) => r.data)
 
 export const aiRpa = (command: string) =>
   client.post<RpaCommandResponse>('/ai/rpa', { command }).then((r) => r.data)

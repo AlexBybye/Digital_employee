@@ -51,4 +51,5 @@ def ai_rpa(payload: RpaCommandRequest,
 def ai_chat(payload: ChatRequest, user: Optional[dict] = Depends(_get_optional_user)) -> dict:
     """Unified AI chat — uses logged-in identity if available, otherwise anonymous."""
     username = user["username"] if user else "anonymous"
-    return chat(payload.message, username)
+    history = [{"role": t.role, "text": t.text} for t in payload.history]
+    return chat(payload.message, username, history=history)

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api import admin, ai, health, rpa, tickets, users
 from database.db import get_faqs, init_database, seed_database
 from rag.chroma_store import init_vector_store
+from rag.ingest import ingest_docs
 
 logger = logging.getLogger(__name__)
 
@@ -46,3 +47,10 @@ def startup() -> None:
         logger.info("Vector store initialized with %d FAQs.", len(faqs))
     else:
         logger.warning("Vector store unavailable; using keyword fallback.")
+
+    # Ingest long-form docs (data/docs/*.md) into the doc chunk store.
+    try:
+        n_chunks = ingest_docs()
+        logger.info("Doc store initialized with %d chunks.", n_chunks)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Doc ingestion skipped (%s).", exc)
