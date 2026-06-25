@@ -79,50 +79,137 @@
 ## 目录结构
 
 ```text
-ops-digital-employee/
-+-- backend/
-|   +-- main.py                    # FastAPI 入口
-|   +-- api/                       # API 路由
-|   |   +-- ai.py                  #   AI 问答 / 聊天 / RPA 端点
-|   |   +-- admin.py               #   后台工单、FAQ 管理
-|   |   +-- tickets.py             #   工单接口
-|   |   +-- users.py               #   账号接口 + 登录
-|   |   +-- rpa.py                 #   RPA 操作接口
-|   |   +-- health.py              #   健康检查
-|   +-- models/schemas.py          # Pydantic 请求/响应模型
-|   +-- services/
-|   |   +-- chat_service.py        #   AI 统一对话调度
-|   |   +-- ai_service.py          #   RAG 问答服务
-|   |   +-- ai_rpa_service.py      #   AI 驱动的 RPA 调度
-|   |   +-- llm_service.py         #   Ollama / DeepSeek 适配层
-|   |   +-- rpa_service.py         #   RPA 操作函数
-|   |   +-- ticket_service.py      #   工单处理服务
-|   +-- rag/
-|   |   +-- retriever.py        #   FAQ 检索引擎（向量+关键词加权）
-|   |   +-- chroma_store.py     #   numpy 向量存储（BGE 嵌入 + pickle 缓存）
-|   +-- database/db.py             # SQLite + JSON 数据层
-+-- frontend/
-|   +-- index.html                 # 系统总览（需登录）
-|   +-- self-service.html          # 前台自助服务（对话界面，无需登录）
-|   +-- tickets.html               # 申告工单处理
-|   +-- users.html                 # 运维账号管理
-|   +-- knowledge.html             # 私有知识库
-|   +-- rpa.html                   # RPA 自动化
-|   +-- app.js                     # 前端公共逻辑
-|   +-- assets/styles.css          # 样式
-+-- scripts/
-|   +-- setup.bat                  # 一键初始化 + 自动启动服务（双击运行）
-|   +-- setup_ollama.ps1           # 安装脚本（被 setup.bat 调用）
-+-- data/
-|   +-- faq.json                   # FAQ 知识库
-|   +-- tickets.db                 # SQLite 数据库
-|   +-- vectors.pkl                # 向量缓存（自动生成）
-+-- docs/
-|   +-- API.md                     # 接口文档
-|   +-- COURSE_DESIGN.md           # 课程设计说明
-+-- README.md
-+-- AGENTS.md
-+-- .gitignore
+│  .gitignore
+│  AGENTS.md
+│  README.md
+│  VERSION
+│  
+├─backend
+│  │  auth.py
+│  │  main.py
+│  │  requirements.txt
+│  │          
+│  ├─api
+│  │      admin.py
+│  │      ai.py
+│  │      health.py
+│  │      rpa.py
+│  │      tickets.py
+│  │      users.py
+│  │      __init__.py
+│  │      
+│  ├─database
+│  │      db.py
+│  │      __init__.py
+│  │      
+│  ├─eval
+│  │      dataset.json
+│  │      run_eval.py
+│  │      __init__.py
+│  │      
+│  ├─models
+│  │      schemas.py
+│  │      __init__.py
+│  │      
+│  ├─rag
+│  │      chroma_store.py
+│  │      chunker.py
+│  │      config.py
+│  │      doc_store.py
+│  │      ingest.py
+│  │      query_rewrite.py
+│  │      reranker.py
+│  │      retriever.py
+│  │      __init__.py
+│  │      
+│  ├─reports
+│  │      rag_v1_baseline.md
+│  │      rag_v1_vs_v2.md
+│  │      rag_v2.md
+│  │      rag_v2_docs.md
+│  │      
+│  ├─services
+│  │      ai_rpa_service.py
+│  │      ai_service.py
+│  │      chat_service.py
+│  │      llm_service.py
+│  │      rpa_service.py
+│  │      ticket_service.py
+│  │      __init__.py
+│  │      
+│  └─tests
+│          test_gen2_rag.py
+│          test_retriever.py
+│          
+├─data
+│  │  faq.json
+│  │  
+│  └─models
+│      └─bge-small-zh-v1.5
+│          │  .gitattributes
+│          │  config.json
+│          │  config_sentence_transformers.json
+│          │  model.safetensors
+│          │  modules.json
+│          │  sentence_bert_config.json
+│          │  special_tokens_map.json
+│          │  tokenizer.json
+│          │  tokenizer_config.json
+│          │  vocab.txt
+│          │  
+│          └─1_Pooling
+│                  config.json
+│                  
+├─frontend-vue
+│  │  .gitignore
+│  │  env.d.ts
+│  │  index.html
+│  │  package-lock.json
+│  │  package.json
+│  │  README.md
+│  │  tsconfig.json
+│  │  tsconfig.node.json
+│  │  tsconfig.node.tsbuildinfo
+│  │  tsconfig.tsbuildinfo
+│  │  vite.config.d.ts
+│  │  vite.config.ts
+│  │  
+│  └─src
+│      │  App.vue
+│      │  main.ts
+│      │  
+│      ├─api
+│      │      client.ts
+│      │      index.ts
+│      │      types.ts
+│      │      
+│      ├─layouts
+│      │      AdminLayout.vue
+│      │      PublicLayout.vue
+│      │      
+│      ├─router
+│      │      index.ts
+│      │      
+│      ├─stores
+│      │      auth.ts
+│      │      
+│      ├─styles
+│      │      element-overrides.css
+│      │      theme.css
+│      │      
+│      └─views
+│              DashboardView.vue
+│              KnowledgeView.vue
+│              LoginView.vue
+│              RpaView.vue
+│              SelfServiceView.vue
+│              TicketsView.vue
+│              UsersView.vue
+│              
+└─scripts
+        setup.bat
+        setup.sh
+        setup_ollama.ps1
 ```
 
 ## 环境要求
